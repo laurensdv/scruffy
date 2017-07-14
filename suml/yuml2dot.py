@@ -259,14 +259,14 @@ def transform(expr, fout, options):
         import subprocess
 
         if options.scruffy:
-            import StringIO
+            from io import StringIO, BytesIO
             from . import scruffy
 
-            svg = subprocess.Popen(['dot', '-Tsvg'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=dot)[0]
-            scruffy.transform(StringIO.StringIO(svg), fout, options)
+            svg = subprocess.Popen(['dot', '-Tsvg'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=dot.encode('utf8'))[0]
+            scruffy.transform(BytesIO(svg), fout, options)
         elif options.png:
-            subprocess.Popen(['dot', '-Tpng'], stdin=subprocess.PIPE, stdout=fout).communicate(input=dot)
+            subprocess.Popen(['dot', '-Tpng'], stdin=subprocess.PIPE, stdout=fout).communicate(input=dot.encode('utf8'))
         elif options.svg:
-            subprocess.Popen(['dot', '-Tsvg'], stdin=subprocess.PIPE, stdout=fout).communicate(input=dot)
+            subprocess.Popen(['dot', '-Tsvg'], stdin=subprocess.PIPE, stdout=fout).communicate(input=dot.encode('utf8'))
     else:
         fout.write(dot)
