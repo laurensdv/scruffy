@@ -164,13 +164,13 @@ def yuml2dot(spec, options):
 
     exprs = list(yumlExpr(spec))
 
-    if len(exprs) > 5: options.rankdir = 'TD'
-    else: options.rankdir = 'LR'
+    if len(exprs) > 5: options['rankdir'] = 'TD'
+    else: options['rankdir'] = 'LR'
 
     dot = []
     dot.append('digraph G {')
     dot.append('    ranksep = 1')
-    dot.append('    rankdir = %s' % (options.rankdir))
+    dot.append('    rankdir = %s' % (options['rankdir']))
 
     for expr in exprs:
         for elem in expr:
@@ -184,8 +184,8 @@ def yuml2dot(spec, options):
                 dot.append('        label = "%s"' % (label))
                 dot.append('        fontsize = 10')
 
-                if options.font:
-                    dot.append('        fontname = "%s"' % (options.font))
+                if 'font' in options:
+                    dot.append('        fontname = "%s"' % (options['font']))
                 for node in elem[3]:
                     dot.append('        %s' % (uids[node].uid))
                 dot.append('    }')
@@ -200,8 +200,8 @@ def yuml2dot(spec, options):
                 dot.append('        height = 0.50')
                 #dot.append('        margin = 0.11,0.055')
                 dot.append('        fontsize = 10')
-                if options.font:
-                    dot.append('        fontname = "%s"' % (options.font))
+                if 'font' in options:
+                    dot.append('        fontname = "%s"' % (options['font']))
                 dot.append('        margin = "0.20,0.05"')
                 dot.append('    ]')
                 dot.append('    %s [' % (uid))
@@ -219,7 +219,7 @@ def yuml2dot(spec, options):
 
                 label = escape_label(label)
 
-                if '|' in label and options.rankdir == 'TD':
+                if '|' in label and options['rankdir'] == 'TD':
                     label = '{' + label + '}'
 
                 dot.append('        label = "%s"' % (label))
@@ -244,8 +244,8 @@ def yuml2dot(spec, options):
             dot.append('        headlabel = "%s"' % (elem[4]))
             dot.append('        labeldistance = 2')
             dot.append('        fontsize = 10')
-            if options.font:
-                dot.append('        fontname = "%s"' % (options.font))
+            if 'font' in options:
+                dot.append('        fontname = "%s"' % (options['font']))
             dot.append('    ]')
             dot.append('    %s -> %s' % (uids[recordName(expr[0][1])].uid, uids[recordName(expr[2][1])].uid))
 
@@ -255,18 +255,18 @@ def yuml2dot(spec, options):
 def transform(expr, fout, options):
     dot = yuml2dot(expr, options)
 
-    if options.png or options.svg:
+    if 'png' in options or 'svg' in options:
         import subprocess
 
-        if options.scruffy:
+        if 'scruffy' in options:
             from io import StringIO, BytesIO
             from . import scruffy
 
             svg = subprocess.Popen(['dot', '-Tsvg'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=dot.encode('utf8'))[0]
             scruffy.transform(BytesIO(svg), fout, options)
-        elif options.png:
+        elif 'png' in options:
             subprocess.Popen(['dot', '-Tpng'], stdin=subprocess.PIPE, stdout=fout).communicate(input=dot.encode('utf8'))
-        elif options.svg:
+        elif 'svg' in options:
             subprocess.Popen(['dot', '-Tsvg'], stdin=subprocess.PIPE, stdout=fout).communicate(input=dot.encode('utf8'))
     else:
         fout.write(dot)
