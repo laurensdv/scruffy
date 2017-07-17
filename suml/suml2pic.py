@@ -125,24 +125,24 @@ def suml2pic(spec, options):
 def transform(expr, fout, options):
     pic = suml2pic(expr, options)
 
-    if 'png' in options or 'svg' in options:
+    if options.png or options.svg:
         import subprocess
         from io import StringIO, BytesIO
-
-        if 'scruffy' in options:
+        
+        if options.scruffy:
             from . import scruffy
 
-            svg = subprocess.Popen(['pic2plot', '-Tsvg'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=pic.encode('utf-8'))[0]
-            if 'png' in options:
+            svg = subprocess.Popen(['pic2plot', '-Tsvg'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=pic.encode('utf8'))[0]
+            if options.png:
                 tocrop = BytesIO()
                 scruffy.transform(BytesIO(svg), tocrop, options)
-                common.crop(StringIO(tocrop.getvalue()), fout)
+                common.crop(BytesIO(tocrop.getvalue()), fout)
             else:
                 scruffy.transform(BytesIO(svg), fout, options)
-        elif 'png'  in options:
-            png = subprocess.Popen(['pic2plot', '-Tpng'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=pic.encode('utf-8'))[0]
+        elif options.png:
+            png = subprocess.Popen(['pic2plot', '-Tpng'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=pic.encode('utf8'))[0]
             common.crop(BytesIO(png), fout)
         elif options.svg:
-            subprocess.Popen(['pic2plot', '-Tsvg'], stdin=subprocess.PIPE, stdout=fout).communicate(input=pic.encode('utf-8'))
+            subprocess.Popen(['pic2plot', '-Tsvg'], stdin=subprocess.PIPE, stdout=fout).communicate(input=pic.encode('utf8'))
     else:
-        fout.write(pic.encode('utf-8'))
+        fout.write(pic)

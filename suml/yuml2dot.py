@@ -65,7 +65,6 @@ def escape_label(label):
     label = label.replace(' ', '\\ ')
     label = label.replace('<', '\\<').replace('>', '\\>')
     label = label.replace('\\n\\n', '\\n')
-    label = label.replace('\\l\\l', '\\l')
     return label
 
 def yumlExpr(spec):
@@ -164,13 +163,13 @@ def yuml2dot(spec, options):
 
     exprs = list(yumlExpr(spec))
 
-    if len(exprs) > 5: options['rankdir'] = 'TD'
-    else: options['rankdir'] = 'LR'
+    if len(exprs) > 5: options.rankdir = 'TD'
+    else: options.rankdir = 'LR'
 
     dot = []
     dot.append('digraph G {')
     dot.append('    ranksep = 1')
-    dot.append('    rankdir = %s' % (options['rankdir']))
+    dot.append('    rankdir = %s' % (options.rankdir))
 
     for expr in exprs:
         for elem in expr:
@@ -184,8 +183,8 @@ def yuml2dot(spec, options):
                 dot.append('        label = "%s"' % (label))
                 dot.append('        fontsize = 10')
 
-                if 'font' in options:
-                    dot.append('        fontname = "%s"' % (options['font']))
+                if options.font:
+                    dot.append('        fontname = "%s"' % (options.font))
                 for node in elem[3]:
                     dot.append('        %s' % (uids[node].uid))
                 dot.append('    }')
@@ -200,17 +199,16 @@ def yuml2dot(spec, options):
                 dot.append('        height = 0.50')
                 #dot.append('        margin = 0.11,0.055')
                 dot.append('        fontsize = 10')
-                if 'font' in options:
-                    dot.append('        fontname = "%s"' % (options['font']))
+                if options.font:
+                    dot.append('        fontname = "%s"' % (options.font))
                 dot.append('        margin = "0.20,0.05"')
                 dot.append('    ]')
                 dot.append('    %s [' % (uid))
 
                 # Looks like table / class with attributes and methods
                 if '|' in label:
-                    label = label + '\\l'
-                    label = label.replace('|', '\\l|')
-                    label = label.replace(';', '\\l')
+                    label = label + '\\n'
+                    label = label.replace('|', '\\n|')
                 else:
                     lines = []
                     for line in label.split(';'):
@@ -219,7 +217,7 @@ def yuml2dot(spec, options):
 
                 label = escape_label(label)
 
-                if '|' in label and options['rankdir'] == 'TD':
+                if '|' in label and options.rankdir == 'TD':
                     label = '{' + label + '}'
 
                 dot.append('        label = "%s"' % (label))
@@ -244,29 +242,29 @@ def yuml2dot(spec, options):
             dot.append('        headlabel = "%s"' % (elem[4]))
             dot.append('        labeldistance = 2')
             dot.append('        fontsize = 10')
-            if 'font' in options:
-                dot.append('        fontname = "%s"' % (options['font']))
+            if options.font:
+                dot.append('        fontname = "%s"' % (options.font))
             dot.append('    ]')
             dot.append('    %s -> %s' % (uids[recordName(expr[0][1])].uid, uids[recordName(expr[2][1])].uid))
 
     dot.append('}')
     return '\n'.join(dot) + '\n'
 
-def transform(expr, fout, options):
+def transform(expr, fout, options):   
     dot = yuml2dot(expr, options)
-
-    if 'png' in options or 'svg' in options:
+    
+    if options.png or options.svg:
         import subprocess
 
-        if 'scruffy' in options:
+        if options.scruffy:
             from io import StringIO, BytesIO
             from . import scruffy
 
             svg = subprocess.Popen(['dot', '-Tsvg'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input=dot.encode('utf8'))[0]
             scruffy.transform(BytesIO(svg), fout, options)
-        elif 'png' in options:
+        elif options.png:
             subprocess.Popen(['dot', '-Tpng'], stdin=subprocess.PIPE, stdout=fout).communicate(input=dot.encode('utf8'))
-        elif 'svg' in options:
+        elif options.svg:
             subprocess.Popen(['dot', '-Tsvg'], stdin=subprocess.PIPE, stdout=fout).communicate(input=dot.encode('utf8'))
     else:
         fout.write(dot)

@@ -21,6 +21,7 @@
 import subprocess
 from PIL import Image, ImageChops
 from operator import attrgetter
+import io
 
 def hasFont(font_name):
     """ Checks if font is installed (using fc-list; are there other possibilities?) """
@@ -85,10 +86,10 @@ def splitYUML(spec):
         yield word.strip()
 
 def crop(fin, fout):
-    img = Image.open(fin)
+    img = Image.open(fin, 'r')
     if img.mode != 'RGB':
         img = img.convert('RGB')
     bg = Image.new('RGB', img.size, (255, 255, 255))
     diff = ImageChops.difference(img, bg)
     area = img.crop(diff.getbbox())
-    area.save(fout, 'png')
+    area.save(fout, format='PNG')
